@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic User Table</title>
+    <style>
+        /* Modern, clean styling for the page */
+        :root {
+            --surface-color: #ffffff;
+            --background-color: #f4f7fa;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --primary-color: #007bff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        #tableContainer p {
+            text-align: center;
+            color: #888;
+            font-size: 1.1em;
+            padding: 3em 1em;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <h1>Dynamic and Interactive User Data</h1>
+        <div id="tableContainer">
+            <p>Loading user data, please wait...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { createDynamicTable } from './table.js';
+
+        // Fetches and prepares the data from the local JSON file.
+        async function loadData() {
+            try {
+                const response = await fetch('./data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data.value || []; // Ensure we return an array
+            } catch (error) {
+                console.error('Error loading data:', error);
+                const container = document.getElementById('tableContainer');
+                container.innerHTML = `<p style="color: #d93025; border-color: #d93025;">Error: Could not load user data. Please check the console for details.</p>`;
+                return [];
+            }
+        }
+
+        // Initializes the dynamic table with a full set of features.
+        async function initializeTable() {
+            const userData = await loadData();
+            if (userData.length === 0) return; // Stop if data loading failed or is empty
+
+            createDynamicTable('tableContainer', {
+                // --- Core Settings ---
+                data: userData,
+                
+                // REQUIRED for selection: Specify the unique identifier in your data.
+                keyField: 'UserName', 
+
+                // --- Feature Toggles ---
+                serverSide: false,
+                logging: true,
+                bordered: true,   // Adds borders around the table and cells.
+                striped: true,    // Adds alternating row colors for readability.
+                selectable: true, // Enables row selection checkboxes.
+                resizable: true,  // Allows users to resize columns.
+                
+                // --- Pagination ---
+                pagination: {
+                    enabled: true,
+                    pageSize: 8,
+                },
+                
+                // --- Filtering ---
+                filtering: {
+                    enabled: true,
+                    debounceMs: 300
+                },
+                
+                // --- Column Definitions ---
+                columns: [
+                    { id: 'UserName', caption: 'Username', filterableAndSortable: true },
+                    { id: 'FirstName', caption: 'First Name', filterableAndSortable: true },
+                    { id: 'MiddleName', caption: 'Middle Name', filterableAndSortable: true },
+                    { id: 'LastName', caption: 'Last Name', filterableAndSortable: true },
+                    { id: 'Gender', caption: 'Gender', filterableAndSortable: true },
+                    { id: 'Age', caption: 'Age', filterableAndSortable: true, dataType: 'number' }
+                ],
+
+                // --- Customization ---
+                emptyMessage: "No users were found matching your criteria.",
+            });
+        }
+
+        // Start the application
+        initializeTable();
+    </script>
+</body>
+</html>
