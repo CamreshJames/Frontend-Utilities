@@ -1,0 +1,17 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "Testing my table utility",
+  "license": "MIT",
+  "author": "Camresh James",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "npm run server",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5"
+  }
+}

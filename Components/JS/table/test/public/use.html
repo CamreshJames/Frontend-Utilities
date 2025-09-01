@@ -60,7 +60,8 @@
         // Fetches and prepares the data from the local JSON file.
         async function loadData() {
             try {
-                const response = await fetch('/odata/TripPinRESTierService/People?$format=json');
+                // FIX: Updated the API endpoint to the correct V4 service URL.
+                const response = await fetch('/odata/People');
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -97,7 +98,7 @@
                 // --- Pagination ---
                 pagination: {
                     enabled: true,
-                    pageSize: 4,
+                    pageSize: 2,
                 },
                 
                 // --- Filtering ---

@@ -1,12 +1,11 @@
 /**
  * Creates a dynamic, interactive data table within a specified container.
- * @brief Initializes a feature-rich table with support for sorting, filtering, pagination, row selection, and column resizing.
  * @param {string} containerId The ID of the HTML element where the table will be rendered.
  * @param {Object} config The configuration object for the table.
  * @param {Array} config.data The array of data objects to display.
  * @param {Array} config.columns An array of column definition objects.
  * @param {string} [config.keyField] The unique identifier property in your data. Required for row selection.
- * @returns {Object} An API to interact with the table instance (refresh, updateData, getState).
+ * @returns {Object} An API to interact with the table instance.
  */
 export function createDynamicTable(containerId, config) {
     const container = document.getElementById(containerId);
@@ -62,12 +61,6 @@ export function createDynamicTable(containerId, config) {
 
     // --- Core Logic ---
 
-    /**
-     * @brief Debounces a function to limit how often it is called.
-     * @param {Function} func The function to debounce.
-     * @param {number} delay The debounce delay in milliseconds.
-     * @returns {Function} A debounced version of the input function.
-     */
     const debounce = (func, delay) => {
         let timeout;
         return (...args) => {
@@ -76,21 +69,12 @@ export function createDynamicTable(containerId, config) {
         };
     };
 
-    /**
-     * @brief Sanitizes input strings to prevent XSS attacks by escaping HTML characters.
-     * @param {string} str The string to sanitize.
-     * @returns {string} The sanitized string safe for DOM insertion.
-     */
     const sanitize = (str) => {
         const temp = document.createElement('div');
         temp.textContent = String(str ?? '');
         return temp.innerHTML;
     };
 
-    /**
-     * @brief Processes client-side data with filtering, sorting, and pagination.
-     * @description Applies filters and sorting to the data, calculates pagination, and updates the state with the visible data subset.
-     */
     const processClientData = () => {
         let processedData = [...settings.data];
         const filterEntries = Object.entries(state.filters).filter(([, value]) => value);
@@ -134,10 +118,6 @@ export function createDynamicTable(containerId, config) {
 
     // --- DOM Rendering ---
 
-    /**
-     * @brief Renders the table header with column titles, sorting icons, and optional filters.
-     * @returns {string} HTML string for the table header.
-     */
     const renderHeader = () => {
         const selectHeader = settings.selectable ? `<th><input type="checkbox" data-select-all aria-label="Select all rows"></th>` : '';
         const headerCells = settings.columns.map(col => {
@@ -163,10 +143,6 @@ export function createDynamicTable(containerId, config) {
         return `<thead><tr>${selectHeader}${headerCells}</tr>${filterRow}</thead>`;
     };
 
-    /**
-     * @brief Renders the table body with data rows, supporting selection and custom rendering.
-     * @returns {string} HTML string for the table body.
-     */
     const renderBody = () => {
         if (state.data.length === 0) {
             const colSpan = settings.columns.length + (settings.selectable ? 1 : 0);
@@ -192,10 +168,6 @@ export function createDynamicTable(containerId, config) {
         }).join('');
     };
 
-    /**
-     * @brief Renders the pagination controls and information.
-     * @returns {string} HTML string for the pagination section.
-     */
     const renderPagination = () => {
         if (!settings.pagination.enabled || state.totalPages <= 1) return '';
         const { prev, next, showing, of } = settings.locale;
@@ -221,10 +193,6 @@ export function createDynamicTable(containerId, config) {
             </div>`;
     };
 
-    /**
-     * @brief Updates the table content by re-rendering the body and pagination.
-     * @description Refreshes the table UI based on current state (data, filters, sorting, etc.).
-     */
     const update = () => {
         logger.log("Updating table content...");
         if (elements.tbody) elements.tbody.innerHTML = renderBody();
@@ -241,10 +209,6 @@ export function createDynamicTable(containerId, config) {
 
     // --- Event Handlers ---
 
-    /**
-     * @brief Attaches event listeners for sorting, pagination, selection, and column resizing.
-     * @description Handles user interactions like clicking sort icons, pagination buttons, checkboxes, and resize handles.
-     */
     const attachEventListeners = () => {
         elements.wrapper.addEventListener('click', async (e) => {
             const target = e.target;
@@ -306,23 +270,12 @@ export function createDynamicTable(containerId, config) {
         }
     };
 
-    /**
-     * @brief Handles the "Select All" checkbox interaction.
-     * @param {boolean} checked Whether the select-all checkbox is checked.
-     * @description Selects or deselects all rows on the current page.
-     */
     const handleSelectAll = (checked) => {
         if (checked) state.data.forEach(row => state.selectedRows.add(row[settings.keyField]));
         else state.data.forEach(row => state.selectedRows.delete(row[settings.keyField]));
         update();
     };
 
-    /**
-     * @brief Handles individual row selection.
-     * @param {string} rowId The unique identifier of the row.
-     * @param {boolean} checked Whether the row's checkbox is checked.
-     * @description Updates the selectedRows state and UI for a single row.
-     */
     const handleSelectRow = (rowId, checked) => {
         if (checked) state.selectedRows.add(rowId);
         else state.selectedRows.delete(rowId);
@@ -338,10 +291,6 @@ export function createDynamicTable(containerId, config) {
 
     // --- Initialization & Styles ---
 
-    /**
-     * @brief Injects CSS styles for the table, including theming and optional features like borders and stripes.
-     * @description Creates a style element with dynamic CSS based on configuration (e.g., bordered, striped).
-     */
     const injectStyles = () => {
         const styleId = `dynamic-table-styles-${containerId}`;
         if (document.getElementById(styleId)) return;
@@ -379,10 +328,6 @@ export function createDynamicTable(containerId, config) {
         document.head.appendChild(style);
     };
 
-    /**
-     * @brief Initializes the table DOM structure and sets up event listeners.
-     * @description Renders the initial table wrapper, scroll container, table, and pagination elements.
-     */
     const initialRender = () => {
         container.innerHTML = `
             <div class="${settings.tableClass}-wrapper">
@@ -405,22 +350,11 @@ export function createDynamicTable(containerId, config) {
 
     // --- Public API & Execution ---
 
-    /**
-     * @brief Refreshes the table with updated data or state.
-     * @description Processes data (if client-side) and triggers a UI update.
-     * @returns {Promise<void>} Resolves when the refresh is complete.
-     */
     const refresh = async () => {
         if (!settings.serverSide) processClientData();
         update();
     };
 
-    /**
-     * @brief Updates the table with new data.
-     * @param {Array} newData The new array of data objects.
-     * @description Resets pagination and selection, then refreshes the table.
-     * @returns {Promise<void>} Resolves when the update is complete.
-     */
     const updateData = async (newData) => {
         if (settings.serverSide) return;
         settings.data = Array.isArray(newData) ? newData : [];
@@ -429,15 +363,9 @@ export function createDynamicTable(containerId, config) {
         await refresh();
     };
 
-    /**
-     * @brief Gets the current state of the table.
-     * @returns {Object} A copy of the table's internal state (data, filters, sorter, etc.).
-     */
-    const getState = () => ({ ...state });
-
     logger.log("Initializing table...");
     initialRender();
     refresh();
 
-    return { refresh, updateData, getState };
+    return { refresh, updateData, getState: () => ({ ...state }) };
 }
